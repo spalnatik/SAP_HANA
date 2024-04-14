@@ -90,12 +90,7 @@ echo "We are on node $hostname"
 if [ $hostname == 'hn1-db-0' ]
 then
     echo 'Starting configuring the cluster now ..'
-    sbddevice=`lsscsi  | grep sbdnfs | awk '{print $NF}' | cut -d '/' -f3`
-    echo sbddevice=$sbddevice  
-    sbddevice_scsiid=`ls -l /dev/disk/by-id/scsi-3600* | grep $sbddevice | awk '{print $9}'`
-    echo sbddevice_scsiid=$sbddevice_scsiid 
-
-    ha-cluster-init -u -y -n test-cluster -N nfs-1
+    ha-cluster-init -u -y -n test-cluster -N hn1-db-1
     crm configure property stonith-timeout=144
     crm configure property stonith-enabled=true
     crm configure primitive stonith-sbd stonith:external/sbd \
