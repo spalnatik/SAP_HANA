@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo systemctl enable sbd
+
 disk=`ls -l /dev/disk/by-id/scsi-* | grep sdc | awk 'NR==2 {print $9}'`
 
 sbd -d $disk -1 60 -4 120 create
