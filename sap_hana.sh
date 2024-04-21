@@ -66,10 +66,10 @@ echo "Async Creating load balancer .."
 az network lb create --resource-group $rgname --name $lbname --location $loc --backend-pool-name $backendpoolname --frontend-ip-name $frontendip --private-ip-address "10.0.0.4" --sku "Standard" --vnet-name $vnetname --subnet $subnetname --no-wait >> $logfile
 
 echo "Async Creating First node, with both ssh key and password authentication methods .."
-az vm create -g $rgname -n $vmname1 --admin-username $username --admin-password $password --authentication-type "all"  --ssh-key-values $sshpubkeyfile --availability-set $asname --image $offer --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --size "$sku_size" --vnet-name $vnetname --subnet $subnetname --public-ip-sku Standard --private-ip-address "10.0.0.5" --no-wait >> $logfile
+az vm create -g $rgname -n $vmname1 --admin-username $username --admin-password $password --authentication-type "all"  --ssh-key-values $sshpubkeyfile --availability-set $asname --image $offer  --size "$sku_size" --vnet-name $vnetname --subnet $subnetname --public-ip-sku Standard --private-ip-address "10.0.0.5" --no-wait >> $logfile
 
 echo "Sync Creating Second node, with both ssh key and password authentication methods .."
-az vm create -g $rgname -n $vmname2 --admin-username $username --admin-password $password --authentication-type "all" --ssh-key-values $sshpubkeyfile --availability-set $asname --image $offer --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --data-disk-sizes-gb 10 --size "$sku_size" --vnet-name $vnetname --subnet $subnetname --public-ip-sku Standard --private-ip-address "10.0.0.6" >> $logfile
+az vm create -g $rgname -n $vmname2 --admin-username $username --admin-password $password --authentication-type "all" --ssh-key-values $sshpubkeyfile --availability-set $asname --image $offer  --size "$sku_size" --vnet-name $vnetname --subnet $subnetname --public-ip-sku Standard --private-ip-address "10.0.0.6" >> $logfile
 
 echo "Connecting the machines to the load balancer .."
 az network lb probe create --lb-name $lbname --resource-group $rgname --name $probename --port 62503 --protocol Tcp >> $logfile
@@ -102,6 +102,48 @@ vm_2_public_key=`ssh -o "StrictHostKeyChecking=no" $username@$vm_2_pip 'sudo cat
 echo 'Done getting the ssh keys, updating both nodes to have passwordless root access between them'
 az vm run-command invoke -g $rgname -n $vmname1 --command-id RunShellScript --scripts "echo $vm_2_public_key > /root/.ssh/authorized_keys" >> $logfile
 az vm run-command invoke -g $rgname -n $vmname2 --command-id RunShellScript --scripts "echo $vm_1_public_key > /root/.ssh/authorized_keys" >> $logfile
+
+num_disks=4
+
+for ((i=1; i<=num_disks; i++)); do
+    disk_name="$vmname1$i"
+    size_gb=4
+
+    az vm disk attach \
+        -g "$rgname" \
+        --vm-name "$vmname1" \
+        --name "$disk_name" \
+        --new \
+        --size-gb "$size_gb"
+
+    if [ $? -eq 0 ]; then
+        echo "Disk $disk_name successfully attached to $vmname1."
+    else
+        echo "Failed to attach disk $disk_name."
+    fi
+done
+
+num_disks=4
+
+for ((i=1; i<=num_disks; i++)); do
+    disk_name="$vmname2$i"
+    size_gb=4
+
+    az vm disk attach \
+        -g "$rgname" \
+        --vm-name "$vmname2" \
+        --name "$disk_name" \
+        --new \
+        --size-gb "$size_gb"
+
+    if [ $? -eq 0 ]; then
+        echo "Disk $disk_name successfully attached to $vmname2."
+    else
+        echo "Failed to attach disk $disk_name."
+    fi
+done
+
+
 
 echo 'Entering the final phase of configuring the cluster, we will start with node 2 then node 1'
 az vm extension set \
@@ -210,12 +252,24 @@ az vm extension set \
 echo "HANA installation from node2 to node1"
 
 az vm extension set \
---resource-group $rgname \                                                                                                                                  --vm-name $vmname2 \                                                                                                                                        --name customScript \                                                                                                                                       --publisher Microsoft.Azure.Extensions \                                                                                                                    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+--resource-group $rgname \ 
+--vm-name $vmname2 \         
+--name customScript \          
+--publisher Microsoft.Azure.Extensions \   
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
 
 az vm extension set \
---resource-group $rgname \                                                                                                                                  --vm-name $vmname1 \                                                                                                                                        --name customScript \                                                                                                                                       --publisher Microsoft.Azure.Extensions \                                                                                                                    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+--resource-group $rgname \     
+--vm-name $vmname1 \                       
+--name customScript \                       
+--publisher Microsoft.Azure.Extensions \     
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
 
 echo " HA configure"
 
 az vm extension set \
---resource-group $rgname \                                                                                                                                  --vm-name $vmname1 \                                                                                                                                        --name customScript \                                                                                                                                       --publisher Microsoft.Azure.Extensions \                                                                                                                    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile 
+--resource-group $rgname \  
+--vm-name $vmname1 \       
+--name customScript \           
+--publisher Microsoft.Azure.Extensions \   
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile 
