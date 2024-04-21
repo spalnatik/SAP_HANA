@@ -91,12 +91,6 @@ if [ $hostname == 'hn1-db-0' ]
 then
     echo 'Starting configuring the cluster now ..'
     ha-cluster-init -u -y -n test-cluster -N hn1-db-1
-    crm configure property stonith-timeout=144
-    crm configure property stonith-enabled=true
-    crm configure primitive stonith-sbd stonith:external/sbd \
-    params pcmk_delay_max="15" \
-    op monitor interval="15" timeout="20"
-
     echo 'Updateing the token for the proper values, but first we will take backup ..'
     cp /etc/corosync/corosync.conf /etc/corosync/corosync.conf_old
     sed -i 's/^\ttoken\:.*$/\ttoken\: 30000/' /etc/corosync/corosync.conf
