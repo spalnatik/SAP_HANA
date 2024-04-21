@@ -144,7 +144,7 @@ if [ "$choice" = "1" ]; then
     objectid=$(az ad app show --id $clientid --query objectId --output tsv)
     ###Add client secret with expiration. The default is one year.
     clientsecretname=mycert2
-    clientsecretduration=2
+    clientsecretduration=1
     clientsecret=$(az ad app credential reset --id $clientid --append --display-name $clientsecretname --years $clientsecretduration --query password --output tsv)
 
     az role assignment create --assignee $clientid --role "Virtual Machine Contributor" --resource-group $rgname
