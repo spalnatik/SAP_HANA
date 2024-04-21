@@ -252,24 +252,27 @@ az vm extension set \
 echo "HANA installation from node2 to node1"
 
 az vm extension set \
---resource-group $rgname \ 
---vm-name $vmname2 \         
---name customScript \          
---publisher Microsoft.Azure.Extensions \   
+--resource-group $rgname \
+--vm-name $vmname2 \
+--name customScript \
+--publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
 
 az vm extension set \
---resource-group $rgname \     
---vm-name $vmname1 \                       
---name customScript \                       
---publisher Microsoft.Azure.Extensions \     
+--resource-group $rgname \
+--vm-name $vmname1 \
+--name customScript \
+--publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+
 
 echo " HA configure"
 
 az vm extension set \
---resource-group $rgname \  
---vm-name $vmname1 \       
---name customScript \           
---publisher Microsoft.Azure.Extensions \   
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile 
+--resource-group $rgname \
+--vm-name $vmname1 \
+--name customScript \
+--publisher Microsoft.Azure.Extensions \
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile
+
+
