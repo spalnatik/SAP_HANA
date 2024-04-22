@@ -1,16 +1,16 @@
 #!/bin/bash
 
-zypper install SAPHanaSR
-su - hn1adm
-HDB start
-hdbsql -d SYSTEMDB -u SYSTEM -p "Abc@12345678" -i 00 "BACKUP DATA USING FILE ('initialbackupSYS')"
-hdbsql -d HN1 -u SYSTEM -p "Abc@12345678" -i 00 "BACKUP DATA USING FILE ('initialbackupHN1')"
+zypper install SAPHanaSR && \
+su - hn1adm -c "HDB start && \
+hdbsql -d SYSTEMDB -u SYSTEM -p 'Abc@12345678' -i 00 'BACKUP DATA USING FILE (\\'initialbackupSYS\\')'" && \
+hdbsql -d HN1 -u SYSTEM -p 'Abc@12345678' -i 00 'BACKUP DATA USING FILE (\\'initialbackupHN1\\')'
+
+
 # copy to secondary node
 scp /usr/sap/HN1/SYS/global/security/rsecssfs/data/SSFS_HN1.DAT  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/data/
 scp /usr/sap/HN1/SYS/global/security/rsecssfs/key/SSFS_HN1.KEY  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/key/
 #Enable 
 hdbnsutil -sr_enable --name=SITE1
-exit
 
 lines_to_add="[ha_dr_provider_SAPHanaSR]
 provider = SAPHanaSR
