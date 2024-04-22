@@ -277,4 +277,19 @@ az vm extension set \
 --publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile
 
+echo "hana sync primary "
 
+az vm extension set \
+--resource-group $rgname \
+--vm-name $vmname1 \
+--name customScript \
+--publisher Microsoft.Azure.Extensions \
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncprim.sh"],"commandToExecute": "./hanasyncprim.sh"}' >> $logfile
+
+
+az vm extension set \
+--resource-group $rgname \
+--vm-name $vmname2 \
+--name customScript \
+--publisher Microsoft.Azure.Extensions \
+--protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncsec.sh"],"commandToExecute": "./hanasyncsec.sh"}' >> $logfile
