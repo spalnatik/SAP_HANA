@@ -1,5 +1,5 @@
 #!/bin/bash
-
+pkill zypper 
 zypper --non-interactive --no-refresh install SAPHanaSR
 su - hn1adm -c 'HDB start && \
 hdbsql -d SYSTEMDB -u SYSTEM -p "Abc@12345678" -i 03 "BACKUP DATA USING FILE ('\'initialbackupSYS\'')" && \
