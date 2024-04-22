@@ -106,7 +106,7 @@ az vm run-command invoke -g $rgname -n $vmname2 --command-id RunShellScript --sc
 num_disks=4
 
 for ((i=1; i<=num_disks; i++)); do
-    disk_name="$vmname1$i"
+    disk_name="$vmname1-$i"
     size_gb=10
 
     az vm disk attach \
@@ -126,7 +126,7 @@ done
 num_disks=4
 
 for ((i=1; i<=num_disks; i++)); do
-    disk_name="$vmname2$i"
+    disk_name="$vmname2-$i"
     size_gb=10
 
     az vm disk attach \
@@ -145,7 +145,7 @@ done
 
 
 
-echo 'Entering the final phase of configuring the cluster, we will start with node 2 then node 1'
+echo 'Entering the phase of configuring the cluster, we will start with node 2 then node 1'
 az vm extension set \
 --resource-group $rgname \
 --vm-name $vmname2 \
