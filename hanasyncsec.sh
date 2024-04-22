@@ -1,3 +1,5 @@
+#!/bin/bash
+
 su - hn1adm -c 'sapcontrol -nr 00 -function StopWait 600 10 && \
 hdbnsutil -sr_register --remoteHost=hn1-db-0 --remoteInstance=00 --replicationMode=sync --name=SITE2 '
 ## check the status 
