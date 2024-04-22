@@ -32,7 +32,7 @@ global="/hana/shared/HN1/global/hdb/custom/config/global.ini"
 echo "$lines_to_add" | sudo tee -a "$global"
 
 cat << EOF > /etc/sudoers.d/20-saphana
-> # Needed for SAPHanaSR and susChkSrv Python hooks
-> hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_hn1_site_srHook_*
-> hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid=HN1 --case=fenceMe
-> EOF
+# Needed for SAPHanaSR and susChkSrv Python hooks
+hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_hn1_site_srHook_*
+hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid=HN1 --case=fenceMe
+EOF
