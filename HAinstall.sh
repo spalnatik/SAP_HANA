@@ -20,8 +20,14 @@ cd /mnt/hanashare/HDB_SERVER_LINUX_X86_64
 chmod +x hdbinst
 chmod +x hdblcm
 
+pkill zypper
+pkill zypper
 
-zypper --non-interactive --no-refresh install libgcc_s1 libstdc++6 libatomic1 insserv-compat libtool
+zypper --non-interactive --no-refresh install libgcc_s1 
+zypper --non-interactive --no-refresh install libstdc++6 
+zypper --non-interactive --no-refresh install libatomic1 
+zypper --non-interactive --no-refresh install insserv-compat
+zypper --non-interactive --no-refresh install libtool
 
 chmod +x /HDB_SERVER_LINUX_X86_64/instruntime/sdbrun 
 
