@@ -17,7 +17,7 @@ cd /
 scp /usr/sap/HN1/SYS/global/security/rsecssfs/data/SSFS_HN1.DAT  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/data/
 scp /usr/sap/HN1/SYS/global/security/rsecssfs/key/SSFS_HN1.KEY  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/key/
 #Enable 
-hdbnsutil -sr_enable --name=SITE1
+su - hn1adm -c ' hdbnsutil -sr_enable --name=SITE1 '
 
 lines_to_add="[ha_dr_provider_SAPHanaSR]
 provider = SAPHanaSR
