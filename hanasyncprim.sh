@@ -10,6 +10,7 @@ EOF
 
 chmod +x /drsync.sh
 
+cd /
 ./drsync.sh
 
 # copy to secondary node
