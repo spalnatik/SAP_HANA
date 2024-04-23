@@ -1,12 +1,15 @@
 #!/bin/bash
-
+cat << EOF > /drsync.sh
 su - hn1adm -c 'sapcontrol -nr 00 -function StopWait 600 10 && \
-hdbnsutil -sr_register --remoteHost=hn1-db-0 --remoteInstance=03 --replicationMode=sync --name=SITE2'
-## check the status 
-hdbnsutil -sr_state
+hdbnsutil -sr_register --remoteHost=hn1-db-0 --remoteInstance=03 --replicationMode=sync --name=SITE2 && \
+sapcontrol -nr 03 -function StopSystem '
+EOF
 
-sapcontrol -nr 03 -function StopSystem
-exit
+## check the status 
+#hdbnsutil -sr_state
+
+
+#exit
 
 lines_to_add="[ha_dr_provider_SAPHanaSR]
 provider = SAPHanaSR
@@ -33,5 +36,4 @@ hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_hn1_site_srHook_*
 hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid=HN1 --case=fenceMe
 EOF
  
-su - hn1adm
-sapcontrol -nr 00 -function StartSystem
+su - hn1adm -c 'sapcontrol -nr 00 -function StartSystem'
