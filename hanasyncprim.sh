@@ -1,5 +1,7 @@
 #!/bin/bash
 pkill zypper 
+pkill zypper 
+
 zypper --non-interactive --no-refresh install SAPHanaSR
 
 cat << EOF > /drsync.sh
