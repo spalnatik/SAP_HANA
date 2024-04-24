@@ -49,3 +49,5 @@ EOF
 cat << EOF >/drsync1.sh
 su - hn1adm -c 'sapcontrol -nr 03 -function StartSystem'
 EOF
+
+sudo crm resource cleanup
