@@ -40,5 +40,7 @@ cat << EOF > /etc/sudoers.d/20-saphana
 hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_hn1_site_srHook_*
 hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid=HN1 --case=fenceMe
 EOF
- 
+
+cat << EOF >/drsync1.sh
 su - hn1adm -c 'sapcontrol -nr 00 -function StartSystem'
+EOF
