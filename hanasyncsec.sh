@@ -5,6 +5,11 @@ hdbnsutil -sr_register --remoteHost=hn1-db-0 --remoteInstance=03 --replicationMo
 sapcontrol -nr 03 -function StopSystem '
 EOF
 
+chmod +x /drsync.sh
+
+cd /
+
+./drsync.sh
 ## check the status 
 #hdbnsutil -sr_state
 
