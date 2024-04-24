@@ -127,7 +127,7 @@ num_disks=4
 
 for ((i=1; i<=num_disks; i++)); do
     disk_name="$vmname2-$i"
-    size_gb=20
+    size_gb=30
 
     az vm disk attach \
         -g "$rgname" \
