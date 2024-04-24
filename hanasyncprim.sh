@@ -10,6 +10,11 @@ EOF
 
 chmod +x /drsync.sh
 
+scp /usr/sap/HN1/SYS/global/security/rsecssfs/data/SSFS_HN1.DAT  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/data/
+scp /usr/sap/HN1/SYS/global/security/rsecssfs/key/SSFS_HN1.KEY  hn1-db-1:/usr/sap/HN1/SYS/global/security/rsecssfs/key/
+#Enable 
+su - hn1adm -c ' hdbnsutil -sr_enable --name=SITE1 '
+
 cd /
 ./drsync.sh
 
