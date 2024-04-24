@@ -1,6 +1,11 @@
 #!/bin/bash
+pkill zypper 
+pkill zypper 
+
+zypper --non-interactive --no-refresh install SAPHanaSR
+
 cat << EOF > /drsync.sh
-su - hn1adm -c 'sapcontrol -nr 00 -function StopWait 600 10 && \
+su - hn1adm -c 'sapcontrol -nr 03 -function StopWait 600 10 && \
 hdbnsutil -sr_register --remoteHost=hn1-db-0 --remoteInstance=03 --replicationMode=sync --name=SITE2 && \
 sapcontrol -nr 03 -function StopSystem '
 EOF
@@ -42,5 +47,5 @@ hn1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid=HN1 --case=fence
 EOF
 
 cat << EOF >/drsync1.sh
-su - hn1adm -c 'sapcontrol -nr 00 -function StartSystem'
+su - hn1adm -c 'sapcontrol -nr 03 -function StartSystem'
 EOF
