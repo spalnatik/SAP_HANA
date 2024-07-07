@@ -5,7 +5,7 @@ logfile="./hana_cluster_log"
 #set -x
 
 rgname="sles-hana-rg"
-loc="westeurope"
+loc="CanadaEast"
 asname="sleshana"
 vmname1="hn1-db-0"
 vmname2="hn1-db-1"
