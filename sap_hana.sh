@@ -250,7 +250,7 @@ az vm extension set \
     --publisher Microsoft.Azure.Extensions \
     --protected-settings "{\"fileUris\": [\"https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/format.sh\"],\"commandToExecute\": \"./format.sh \"}" >> $logfile
 
-echo "HANA installation"
+echo "HANA installation node 1"
 
 az vm extension set \
 --resource-group $rgname \
@@ -258,6 +258,8 @@ az vm extension set \
 --name customScript \
 --publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+
+echo "HANA installation node 2"
 
 az vm extension set \
 --resource-group $rgname \
@@ -269,7 +271,7 @@ az vm extension set \
 
 
 
-echo " HA configure"
+echo " HA configure on node1"
 
 az vm extension set \
 --resource-group $rgname \
@@ -278,7 +280,7 @@ az vm extension set \
 --publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile
 
-echo "hana sync primary "
+echo "hana sync primary node1"
 
 az vm extension set \
 --resource-group $rgname \
@@ -287,6 +289,7 @@ az vm extension set \
 --publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncprim.sh"],"commandToExecute": "./hanasyncprim.sh"}' >> $logfile
 
+echo "hana sync secondary node2 "
 
 az vm extension set \
 --resource-group $rgname \
