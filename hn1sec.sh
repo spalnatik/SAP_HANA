@@ -29,7 +29,7 @@ EOF
 
 cd /
 
-#chmod +x /drsync1.sh
+chmod +x /drsync1.sh
 
 #./drsync1.sh
 
