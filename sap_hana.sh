@@ -1,11 +1,11 @@
 #!/bin/bash
-# build the rg , AS and 2 VMs for NFS share and one VM for iscsi target
+
 
 logfile="./hana_cluster_log"
 #set -x
 
-rgname="sles-hana-rg"
-loc="CanadaEast"
+rgname="sles-hana-rg-lab"
+loc="southcentralus"
 asname="sleshana"
 vmname1="hn1-db-0"
 vmname2="hn1-db-1"
@@ -15,7 +15,7 @@ vnetname="hanavnet"
 subnetname="hanasubnet"
 sku_size="Standard_E4-2ads_v5"
 shared_disk=false
-offer="SUSE:sles-sap-15-sp2:gen1:latest"
+offer="SUSE:sles-sap-15-sp5:gen1:latest"
 
 frontendip="hana-db-fwip"
 backendpoolname="hana-db-BP"
@@ -57,7 +57,7 @@ echo "Creating RG $rgname.."
 az group create --name $rgname --location $loc >> $logfile
 
 echo "Async Creating availability set .."
-az vm availability-set create -n $asname -g $rgname --platform-fault-domain-count 3 --platform-update-domain-count 20 --no-wait >> $logfile
+az vm availability-set create -n $asname -g $rgname --platform-fault-domain-count 2 --platform-update-domain-count 20  >> $logfile
 
 echo "Sync Creating VNET .."
 az network vnet create --name $vnetname -g $rgname --address-prefixes 10.0.0.0/24 --subnet-name $subnetname --subnet-prefixes 10.0.0.0/24  >> $logfile
@@ -85,9 +85,8 @@ az network lb rule create --resource-group $rgname --lb-name $lbname --name "Han
  --frontend-ip-name $frontendip --backend-pool-name $backendpoolname --protocol All --floating-ip true \
  --idle-timeout 30 --probe-name $probename  >> $logfile
 
-	
-echo 'As we are using this machine to deploy and we can authenticate without password, we will update the authenctication between the 2 cluster nodes ..'
-echo 'Generating and getting RSA public key of root user on first node ..'
+
+
 vm_1_pip=`az vm list-ip-addresses -g $rgname -n $vmname1 --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv`
 vm_2_pip=`az vm list-ip-addresses -g $rgname -n $vmname2 --query [0].virtualMachine.network.publicIpAddresses[0].ipAddress -o tsv`
 
@@ -160,12 +159,12 @@ az vm extension set \
 --publisher Microsoft.Azure.Extensions \
 --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/cluster_setup.sh"],"commandToExecute": "./cluster_setup.sh"}' >> $logfile
 
-echo " configuring fencing device " 
+echo " configuring fencing device "
 
 if [ "$choice" = "1" ]; then
 
-    appregname=myclusterspautosuse
-    subscriptionID=$(az group show --name "sles-hana-rg" --query "id" --output tsv | cut -d '/' -f 3) >> $logfile
+    appregname=myclusterspautosuse11
+    subscriptionID=$(az group show --name "$rgname" --query "id" --output tsv | cut -d '/' -f 3) >> $logfile
     app_exists=$(az ad app list --display-name "$appregname" --query "[0].appId" --output tsv)
 
     if [ -z "$app_exists" ]; then
@@ -204,11 +203,14 @@ if [ "$choice" = "1" ]; then
 
 else
 
-    subscriptionID=$(az group show --name "sles-hana-rg" --query "id" --output tsv | cut -d '/' -f 3) >> $logfile
+    subscriptionID=$(az group show --name "$rgname" --query "id" --output tsv | cut -d '/' -f 3) >> $logfile
+
+    az vm identity assign --name $vmname1 --resource-group $rgname
+    az vm identity assign --name $vmname2 --resource-group $rgname
 
     echo "add role assignment to node1"
 
-    spID=$(az resource list  --resource-group "sles-hana-rg" -n "hn1-db-0" --query [*].identity.principalId --out tsv) >> $logfile
+    spID=$(az resource list  --resource-group "$rgname" -n "hn1-db-0" --query [*].identity.principalId --out tsv) >> $logfile
 
     az role assignment create --assignee $spID --role 'Virtual Machine Contributor' --scope /subscriptions/$subscriptionID/resourceGroups/$rgname/providers/Microsoft.Compute/virtualMachines/hn1-db-0 >> $logfile
 
@@ -216,7 +218,7 @@ else
 
     echo "role assignment to node2"
 
-    spID1=$(az resource list  --resource-group "sles-hana-rg" -n "hn1-db-1" --query [*].identity.principalId --out tsv) >> $logfile
+    spID1=$(az resource list  --resource-group "$rgname" -n "hn1-db-1" --query [*].identity.principalId --out tsv) >> $logfile
 
     az role assignment create --assignee $spID1 --role 'Virtual Machine Contributor' --scope /subscriptions/$subscriptionID/resourceGroups/$rgname/providers/Microsoft.Compute/virtualMachines/hn1-db-0 >> $logfile
 
@@ -253,20 +255,20 @@ az vm extension set \
 echo "HANA installation node 1"
 
 az vm extension set \
---resource-group $rgname \
---vm-name $vmname1 \
---name customScript \
---publisher Microsoft.Azure.Extensions \
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+    --resource-group $rgname \
+    --vm-name $vmname1 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
 
 echo "HANA installation node 2"
 
 az vm extension set \
---resource-group $rgname \
---vm-name $vmname2 \
---name customScript \
---publisher Microsoft.Azure.Extensions \
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
+    --resource-group $rgname \
+    --vm-name $vmname2 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/HAinstall.sh"],"commandToExecute": "./HAinstall.sh"}' >> $logfile
 
 
 
@@ -274,26 +276,47 @@ az vm extension set \
 echo " HA configure on node1"
 
 az vm extension set \
---resource-group $rgname \
---vm-name $vmname1 \
---name customScript \
---publisher Microsoft.Azure.Extensions \
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile
+    --resource-group $rgname \
+    --vm-name $vmname1 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanaconfigure.sh"],"commandToExecute": "./hanaconfigure.sh"}' >> $logfile
 
 echo "hana sync primary node1"
 
 az vm extension set \
---resource-group $rgname \
---vm-name $vmname1 \
---name customScript \
---publisher Microsoft.Azure.Extensions \
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncprim.sh"],"commandToExecute": "./hanasyncprim.sh"}' >> $logfile
+    --resource-group $rgname \
+    --vm-name $vmname1 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncprim.sh"],"commandToExecute": "./hanasyncprim.sh"}' >> $logfile
+
+az vm run-command invoke --resource-group $rgname --name $vmname1 --command-id RunShellScript --scripts 'cd / && ./drsync.sh'
+
+az vm extension set \
+    --resource-group $rgname \
+    --vm-name $vmname1 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hn1primary.sh"],"commandToExecute": "./hn1primary.sh"}' >> $logfile
 
 echo "hana sync secondary node2 "
 
 az vm extension set \
---resource-group $rgname \
---vm-name $vmname2 \
---name customScript \
---publisher Microsoft.Azure.Extensions \
---protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncsec.sh"],"commandToExecute": "./hanasyncsec.sh"}' >> $logfile
+    --resource-group $rgname \
+    --vm-name $vmname2 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hanasyncsec.sh"],"commandToExecute": "./hanasyncsec.sh"}' >> $logfile
+
+az vm run-command invoke --resource-group $rgname --name $vmname2 --command-id RunShellScript --scripts 'cd / && ./drsync.sh'
+
+
+az vm extension set \
+    --resource-group $rgname \
+    --vm-name $vmname2 \
+    --name customScript \
+    --publisher Microsoft.Azure.Extensions \
+    --protected-settings '{"fileUris": ["https://raw.githubusercontent.com/spalnatik/SAP_HANA/main/hn1sec.sh"],"commandToExecute": "./hn1sec.sh"}' >> $logfile
+
+az vm run-command invoke --resource-group $rgname --name $vmname2 --command-id RunShellScript --scripts 'cd / && ./drsync1.sh && sudo crm resource cleanup'
