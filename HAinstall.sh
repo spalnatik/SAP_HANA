@@ -1,10 +1,6 @@
 #!/bin/bash
 
 
-sudo chmod 600 /etc/smbcredentials/fuseshare25.cred
-
-sudo bash -c 'echo "//fuseshare25.file.core.windows.net/hanashare /mnt/hanashare cifs nofail,credentials=/etc/smbcredentials/fuseshare25.cred,dir_mode=0777,file_mode=0777,serverino,nosharesock,actimeo=30" >> /etc/fstab'
-sudo mount -t cifs //fuseshare25.file.core.windows.net/hanashare /mnt/hanashare -o credentials=/etc/smbcredentials/fuseshare25.cred,dir_mode=0777,file_mode=0777,serverino,nosharesock,actimeo=30
 
 scp -r /mnt/hanashare/HDB_SERVER_LINUX_X86_64 /
 
